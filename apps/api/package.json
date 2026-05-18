@@ -1,0 +1,19 @@
+{
+  "name": "@xpudu/api",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "PORT=8000 bun run --watch --env-file ../../.env src/index.ts",
+    "start": "PORT=8000 bun run --env-file ../../.env src/index.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.52.0",
+    "@types/node": "^25.8.0",
+    "dotenv": "^16.5.0",
+    "obs-websocket-js": "^5.0.8"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.8.3"
+  }
+}

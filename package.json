@@ -1,0 +1,17 @@
+{
+  "name": "xpudu-monitoring",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "bun@1.3.12",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "start": "turbo start"
+  },
+  "devDependencies": {
+    "turbo": "^2.9.14"
+  }
+}
