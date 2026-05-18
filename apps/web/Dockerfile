@@ -10,6 +10,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ARG BACKEND_URL=http://api:8000
 ENV BACKEND_URL=$BACKEND_URL
+ARG NEXT_PUBLIC_WS_URL=ws://localhost:8000/ws
+ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
 RUN bun run build
 
 FROM base AS runner
