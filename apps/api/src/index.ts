@@ -1,6 +1,7 @@
 import { startCollector } from "./metrics";
 import { supabase } from "./supabase";
 import { addClient, removeClient } from "./ws";
+import { isAuthenticated } from "./auth";
 import {
   initObs,
   getConnectionStatus,
@@ -43,8 +44,15 @@ Bun.serve({
     }
 
     if (path === "/ws") {
+      if (!(await isAuthenticated(req))) {
+        return new Response("Unauthorized", { status: 401 });
+      }
       if (server.upgrade(req)) return undefined;
       return new Response("WebSocket upgrade failed", { status: 400 });
+    }
+
+    if (!(await isAuthenticated(req))) {
+      return json({ error: "Unauthorized" }, 401);
     }
 
     let match: RegExpMatchArray | null;

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export interface RtmpReader {
   id: string;
@@ -75,11 +76,15 @@ export function useLiveWs() {
 
   useEffect(() => {
     function connect() {
-      const rawUrl = process.env.NEXT_PUBLIC_WS_URL ??
-        `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws`;
-      // Replace localhost so phones on the same LAN connect to the server, not themselves
-      const wsUrl = rawUrl.replace(/localhost|127\.0\.0\.1/, window.location.hostname);
-      const ws = new WebSocket(wsUrl);
+      const supabase = createClient();
+
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const rawUrl = process.env.NEXT_PUBLIC_WS_URL ??
+          `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws`;
+        // Replace localhost so phones on the same LAN connect to the server, not themselves
+        const base = rawUrl.replace(/localhost|127\.0\.0\.1/, window.location.hostname);
+        const wsUrl = session?.access_token ? `${base}?token=${session.access_token}` : base;
+        const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => setConnected(true);
@@ -106,7 +111,8 @@ export function useLiveWs() {
         reconnectTimer.current = setTimeout(connect, 2000);
       };
 
-      ws.onerror = () => ws.close();
+        ws.onerror = () => ws.close();
+      });
     }
 
     connect();

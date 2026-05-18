@@ -1,8 +1,9 @@
 'use client';
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Activity, History, Settings, LayoutGrid } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Activity, History, Settings, LayoutGrid, LogOut } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 const links = [
   { href: "/", label: "Live", icon: Activity, exact: true },
@@ -13,6 +14,13 @@ const links = [
 
 export function Nav() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
 
   return (
     <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
@@ -37,6 +45,13 @@ export function Nav() {
             );
           })}
         </nav>
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          Sign out
+        </button>
       </div>
     </header>
   );
