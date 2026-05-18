@@ -8,7 +8,7 @@ services:
     container_name: xpudu-api
     restart: unless-stopped
     env_file:
-      - apps/api/.env
+      - .env
     environment:
       - NODE_ENV=production
       - PORT=8000
@@ -33,6 +33,24 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
+
+  mediamtx:
+    image: bluenviron/mediamtx:1.17.1
+    container_name: mediamtx
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8554:8554"
+      - "1935:1935"
+      - "8888:8888"
+      - "8889:8889"
+      - "8890:8890/udp"
+      - "8189:8189/udp"
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+    networks:
+      - monitoring-net
 
   web:
     build:

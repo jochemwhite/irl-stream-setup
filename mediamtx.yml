@@ -1,0 +1,78 @@
+###############################################
+# Global Performance & Stability
+###############################################
+logLevel: warn
+# Timeouts for unstable mobile links
+readTimeout: 20s
+writeTimeout: 20s
+# Fixes "circular cascading failures" on 1-bar signals by
+# lowering the packet size to avoid fragmentation.
+udpMaxPayloadSize: 1316
+# Increases RAM buffer to catch "bursts" of retransmitted
+# packets from your phone.
+udpReadBufferSize: 8388608 # 8MB
+
+###############################################
+# Metrics & Authentication
+###############################################
+metrics: yes
+metricsAddress: :9998
+authMethod: internal
+authInternalUsers:
+  - user: any
+    pass: ""
+    ips: []
+    permissions:
+      - action: publish
+      - action: read
+      - action: playback
+  - user: any
+    pass: ""
+    ips: ['127.0.0.1', '::1']
+    permissions:
+      - action: api
+      - action: metrics
+      - action: pprof
+  - user: any
+    pass: ""
+    ips: ['10.10.10.0/24']
+    permissions:
+      - action: metrics
+
+###############################################
+# Protocols
+###############################################
+rtsp: true
+rtmp: true
+hls: true
+webrtc: true
+webrtcLocalUDPAddress: :8189
+webrtcAdditionalHosts: [$WEBRTC_ADDITIONAL_HOST]
+
+###############################################
+# SRT
+###############################################
+srt: true
+srtAddress: :8890
+
+###############################################
+# Path defaults
+# useAbsoluteTimestamp: no — KEY A/V SYNC FIX
+#   MediaMTX re-timestamps packets from zero instead of
+#   trusting IRL Pro's MPEG-TS timestamps. Mobile encoders
+#   send inconsistent timestamps which causes the 98% speed
+#   drift and audio crackling on RTMP output.
+#
+# alwaysAvailable: no — has its own A/V sync bug, keep off.
+###############################################
+pathDefaults:
+  useAbsoluteTimestamp: no
+  alwaysAvailable: no
+
+###############################################
+# Paths
+###############################################
+paths:
+  xpudu:
+    srtPublishPassphrase: $SRT_PUBLISH_PASSPHRASE
+    record: no

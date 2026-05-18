@@ -47,55 +47,42 @@ Phone ──SRT──► MediaMTX ──stream──► OBS ──► Twitch
 
 ### Prerequisites
 
-- [Bun](https://bun.sh) ≥ 1.0
 - [Docker](https://docker.com) + Docker Compose
-- A running [MediaMTX](https://github.com/bluenviron/mediamtx) instance with Prometheus metrics enabled
 - OBS with [obs-websocket](https://obsproject.com/forum/resources/obs-websocket-remote-control-obs-studio-from-websockets.466/) v5
 - A [Supabase](https://supabase.com) project
+- [Traefik](https://traefik.io) reverse proxy with an external `traefik` Docker network and a `letsencrypt` cert resolver
 
-### 1. Clone & install
+### 1. Clone
 
 ```bash
 git clone https://github.com/jochemwhite/irl-stream-setup.git
 cd irl-stream-setup
-bun install
 ```
 
-### 2. Configure the API
+### 2. Configure environment
 
-Copy and fill in `apps/api/.env`:
+Copy `.env.example` to `.env` and fill in the values:
+
+```bash
+cp .env.example .env
+```
 
 ```env
 # Supabase
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# MediaMTX Prometheus metrics endpoint
-MEDIAMTX_METRICS=http://your-mediamtx-host:9998/metrics
+# MediaMTX (internal — resolved by Docker container name)
+MEDIAMTX_METRICS=http://mediamtx:9998/metrics
+SRT_PUBLISH_PASSPHRASE=your-srt-passphrase
+WEBRTC_ADDITIONAL_HOST=your-server-lan-ip
 
-# Polling interval in ms (default: 1000)
-POLL_INTERVAL=1000
-
-# API port (default: 8000)
+# API
 PORT=8000
+POLL_INTERVAL=1000
 ```
 
-### 3. Configure the web app
-
-Copy and fill in `apps/web/.env.local`:
-
-```env
-# Direct WebSocket URL to the API (must not go through Next.js proxy)
-NEXT_PUBLIC_WS_URL=ws://your-server-host:8000/ws
-
-# MediaMTX WebRTC/WHEP endpoint for the stream preview player
-NEXT_PUBLIC_MEDIAMTX_URL=http://your-mediamtx-host:8889
-
-# Comma-separated list of LAN origins allowed in Next.js dev mode
-ALLOWED_DEV_ORIGINS=192.168.x.x
-```
-
-### 4. Run the Supabase migration
+### 3. Run the Supabase migration
 
 Apply the schema to your Supabase project:
 
@@ -106,9 +93,20 @@ supabase db push
 # Or paste supabase-obs-migration.sql into the Supabase SQL editor
 ```
 
-### 5. Run in development
+### 4. Deploy
 
 ```bash
+docker compose up -d --build
+```
+
+The dashboard will be available at `https://dashboard.xpudu.com` and the Stream Deck at `https://dashboard.xpudu.com/deck`. Traefik provisions TLS certificates automatically via Let's Encrypt.
+
+### Development
+
+```bash
+# Install dependencies
+bun install
+
 # API
 cd apps/api && bun run src/index.ts
 
@@ -116,13 +114,11 @@ cd apps/api && bun run src/index.ts
 cd apps/web && bun dev
 ```
 
-### 6. Run with Docker Compose
+For local dev, create `apps/web/.env.local`:
 
-```bash
-docker compose up -d
+```env
+NEXT_PUBLIC_WS_URL=ws://localhost:8000/ws
 ```
-
-The web dashboard is available at `http://localhost:3000` and the Stream Deck at `http://localhost:3000/deck`.
 
 ## Mobile Stream Deck (`/deck`)
 
