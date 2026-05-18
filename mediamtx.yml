@@ -35,7 +35,7 @@ authInternalUsers:
       - action: pprof
   - user: any
     pass: ""
-    ips: ['10.10.10.0/24']
+    ips: ['10.10.10.0/24', '172.16.0.0/12']
     permissions:
       - action: metrics
 
