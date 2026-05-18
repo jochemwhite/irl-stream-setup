@@ -37,8 +37,6 @@ services:
     image: bluenviron/mediamtx:1.17.1
     container_name: mediamtx
     restart: unless-stopped
-    env_file:
-      - .env
     ports:
       - "8554:8554"
       - "1935:1935"
