@@ -235,15 +235,7 @@ Bun.serve({
       return json({ ok: true });
     }
 
-    // ── Static files ──────────────────────────────────────────────────────────
-
-    const filePath = `./web/dist${path === "/" ? "/index.html" : path}`;
-    const file = Bun.file(filePath);
-    if (await file.exists()) {
-      return new Response(file);
-    }
-
-    return new Response(Bun.file("./web/dist/index.html"));
+    return new Response("API online", { status: 200 });
   },
 
   websocket: {
