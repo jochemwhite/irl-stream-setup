@@ -1,7 +1,7 @@
 ###############################################
 # Global Performance & Stability
 ###############################################
-logLevel: debug
+logLevel: info
 # Timeouts for unstable mobile links
 readTimeout: 20s
 writeTimeout: 20s
