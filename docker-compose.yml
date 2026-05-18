@@ -21,6 +21,7 @@ services:
       - "traefik.http.routers.xpudu-api.rule=Host(`api.xpudu.com`)"
       - "traefik.http.routers.xpudu-api.entrypoints=https"
       - "traefik.http.routers.xpudu-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.xpudu-api.service=xpudu-api-svc"
       - "traefik.http.services.xpudu-api-svc.loadbalancer.server.port=8000"
     logging:
       driver: json-file
@@ -76,6 +77,7 @@ services:
       - "traefik.http.routers.xpudu-web.rule=Host(`dashboard.xpudu.com`)"
       - "traefik.http.routers.xpudu-web.entrypoints=https"
       - "traefik.http.routers.xpudu-web.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.xpudu-web.service=xpudu-web-svc"
       - "traefik.http.services.xpudu-web-svc.loadbalancer.server.port=3000"
     logging:
       driver: json-file
