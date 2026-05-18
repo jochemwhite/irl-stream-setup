@@ -13,9 +13,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json tsconfig.json ./
 COPY src ./src
 
-RUN addgroup --system --gid 1001 monitoring && \
-    adduser --system --uid 1001 monitoring
-USER monitoring
+USER bun
 
 EXPOSE 8000
 
