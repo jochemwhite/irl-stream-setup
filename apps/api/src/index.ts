@@ -17,7 +17,7 @@ import {
   invalidatePathCache,
 } from "./obs";
 
-const PORT = Number(process.env.PORT || 3001);
+const PORT = Number(process.env.PORT || 8000);
 
 await startCollector();
 await initObs();
