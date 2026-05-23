@@ -148,7 +148,7 @@ export default function OverlayPage() {
 
   if (!wsConnected) {
     return (
-      <div className="fixed bottom-4 left-4">
+      <div className="fixed top-4 inset-x-0 flex justify-center">
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-black/60 backdrop-blur-sm border border-white/8">
           <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
           <span className="text-[11px] text-white/30 font-mono">connecting…</span>
@@ -158,17 +158,17 @@ export default function OverlayPage() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 select-none">
+    <div className="fixed top-4 inset-x-0 flex justify-center select-none">
       <div
         className={[
-          "rounded-2xl px-3 py-2.5 backdrop-blur-sm border transition-all duration-500",
+          "rounded-2xl px-4 py-3 backdrop-blur-sm border transition-all duration-500",
           "bg-black/70",
           cardBorder,
         ].join(" ")}
-        style={{ minWidth: 160, maxWidth: 260 }}
+        style={{ minWidth: 200, maxWidth: 320 }}
       >
         {/* Scene name row */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2.5">
           <span className="relative flex h-2 w-2 shrink-0">
             {dotPulse && (
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${statusColor}`} />
@@ -176,12 +176,12 @@ export default function OverlayPage() {
             <span className={`relative inline-flex rounded-full h-2 w-2 ${statusColor}`} />
           </span>
 
-          <span className="text-[13px] font-semibold text-white/90 leading-tight truncate">
+          <span className="text-sm font-semibold text-white/90 leading-tight text-center">
             {scene ?? (obsConnected ? "Unknown scene" : "OBS offline")}
           </span>
 
           {inFallback && (
-            <span className="ml-auto shrink-0 text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-md bg-orange-500/25 text-orange-300 border border-orange-500/30">
+            <span className="shrink-0 text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-md bg-orange-500/25 text-orange-300 border border-orange-500/30">
               FALLBACK
             </span>
           )}
@@ -189,7 +189,7 @@ export default function OverlayPage() {
 
         {/* Warning bars — only shown when degrading */}
         {hasWarning && counters && (
-          <div className="mt-2 flex flex-col gap-1">
+          <div className="mt-2.5 flex flex-col gap-1">
             <MetricBar label="bitrate" bad={counters.bitrate.bad} threshold={counters.bitrate.threshold} />
             <MetricBar label="rtt" bad={counters.rtt.bad} threshold={counters.rtt.threshold} />
             <MetricBar label="loss" bad={counters.loss.bad} threshold={counters.loss.threshold} />
@@ -198,7 +198,7 @@ export default function OverlayPage() {
 
         {/* Fallback detail row */}
         {inFallback && (
-          <p className="mt-1.5 text-[10px] text-orange-300/60 leading-tight">
+          <p className="mt-1.5 text-[10px] text-orange-300/60 leading-tight text-center">
             Auto-switched — waiting for recovery
           </p>
         )}
