@@ -5,7 +5,7 @@ import {
   ShieldAlert, X, Clapperboard, Bookmark, Dices, Tv2,
   MonitorPlay, Coffee, Gamepad2, Mic, Film, CircleOff,
   Users, Tv, Radio, ArrowLeft, Wifi, WifiOff,
-  Toilet, Square, Circle,
+  Toilet, Square, Circle, RefreshCw,
 } from "lucide-react";
 import {
   useLiveWs,
@@ -348,10 +348,23 @@ export default function DeckPage() {
             </div>
             <div className="grid grid-cols-4 gap-2">
               {[
-                { key: "clip",     label: "Clip",     Icon: Clapperboard, fn: () => createClip() },
-                { key: "marker",   label: "Marker",   Icon: Bookmark,     fn: () => createMarker() },
-                { key: "wheel",    label: "Wheel",    Icon: Dices,        fn: () => spinWheel() },
-                { key: "ad-break", label: "Ad Break", Icon: Tv2,          fn: () => startAdBreak() },
+                { key: "clip",        label: "Clip",       Icon: Clapperboard, fn: () => createClip() },
+                { key: "marker",      label: "Marker",     Icon: Bookmark,     fn: () => createMarker() },
+                { key: "wheel",       label: "Wheel",      Icon: Dices,        fn: () => spinWheel() },
+                { key: "ad-break",    label: "Ad Break",   Icon: Tv2,          fn: () => startAdBreak() },
+                {
+                  key: "restart-cam",
+                  label: "Restart Cam",
+                  Icon: RefreshCw,
+                  fn: async () => {
+                    const res = await fetch("/api/obs/source/restart", {
+                      method: "POST",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify({ inputName: "IRL CAM" }),
+                    });
+                    return { ok: res.ok };
+                  },
+                },
               ].map(({ key, label, Icon, fn }) => {
                 const isBusy = actionBusy === key;
                 return (

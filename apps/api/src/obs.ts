@@ -504,6 +504,14 @@ export async function setObsScene(sceneName: string) {
   recordSwitch({ ts: new Date().toISOString(), path: "", from, to: sceneName, reason: "manual", detail: "Manually switched from dashboard" });
 }
 
+export async function restartMediaSource(inputName: string) {
+  if (!obsConnected) throw new Error("OBS not connected");
+  await obs.call("TriggerMediaInputAction", {
+    inputName,
+    mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART",
+  });
+}
+
 export async function setSourceEnabled(
   sceneName: string,
   sourceName: string,

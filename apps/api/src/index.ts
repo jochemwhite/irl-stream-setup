@@ -9,6 +9,7 @@ import {
   getObsSources,
   setObsScene,
   setSourceEnabled,
+  restartMediaSource,
   setOverride,
   clearOverride,
   startStream,
@@ -224,6 +225,16 @@ Bun.serve({
       const { sceneName, sourceName, enabled } = await parseBody(req);
       try {
         await setSourceEnabled(sceneName, sourceName, enabled);
+        return json({ ok: true });
+      } catch (err: any) {
+        return json({ error: err.message }, 503);
+      }
+    }
+
+    if (path === "/api/obs/source/restart" && method === "POST") {
+      const { inputName } = await parseBody(req);
+      try {
+        await restartMediaSource(inputName);
         return json({ ok: true });
       } catch (err: any) {
         return json({ error: err.message }, 503);
