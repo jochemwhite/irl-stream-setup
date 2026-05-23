@@ -148,7 +148,7 @@ export default function OverlayPage() {
 
   if (!wsConnected) {
     return (
-      <div className="fixed top-4 inset-x-0 flex justify-center">
+      <div className="fixed top-32  inset-x-0 flex justify-center">
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-black/60 backdrop-blur-sm border border-white/8">
           <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
           <span className="text-[11px] text-white/30 font-mono">connecting…</span>
@@ -158,7 +158,7 @@ export default function OverlayPage() {
   }
 
   return (
-    <div className="fixed top-4 inset-x-0 flex justify-center select-none">
+    <div className="fixed top-32 inset-x-0 flex justify-center select-none">
       <div
         className={[
           "rounded-2xl px-4 py-3 backdrop-blur-sm border transition-all duration-500",
