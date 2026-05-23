@@ -1,4 +1,3 @@
-root@docker:/opt/docker/compose/xpudu/irl-stream-setup# cat mediamtx.yml
 ###############################################
 # MediaMTX v1.17.1 — IRL Streaming Setup
 # IRL Pro (SRT) → MediaMTX → OBS (RTMP pull)
