@@ -24,7 +24,7 @@ export async function proxy(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession();
   const { pathname } = request.nextUrl;
 
-  if (!session && pathname !== "/login") {
+  if (!session && pathname !== "/login" && !pathname.startsWith("/overlay")) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

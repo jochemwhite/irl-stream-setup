@@ -10,6 +10,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=8000
+      - MEDIAMTX_METRICS=http://mediamtx:9998/metrics
     networks:
       - monitoring-net
       - traefik
