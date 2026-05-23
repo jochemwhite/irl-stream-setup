@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Wifi, WifiOff, RefreshCw, Play, Eye, EyeOff, Timer, X, Plus, Trash2,
+  Wifi, WifiOff, RefreshCw, Play, Eye, EyeOff, Timer, X, Plus, Trash2, Copy, Check, ExternalLink,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface ObsStatus {
   connected: boolean;
@@ -625,6 +626,60 @@ function SourceControlSection({ scenes, streamPath }: { scenes: ObsScene[]; stre
   );
 }
 
+function OverlaySection() {
+  const [overlayUrl, setOverlayUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const token = session?.access_token;
+      const base = `${window.location.origin}/overlay`;
+      setOverlayUrl(token ? `${base}?token=${token}` : base);
+    });
+  }, []);
+
+  async function copy() {
+    if (!overlayUrl) return;
+    await navigator.clipboard.writeText(overlayUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm">Browser Source Overlay</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-xs text-muted-foreground">
+          Add this URL as a browser source in OBS or IRL Pro. It shows the active scene and warns when metrics are degrading before an auto-switch.
+          The token in the URL is tied to your current session — regenerate it here if it expires.
+        </p>
+        <div className="flex items-center gap-2">
+          <code className="flex-1 text-[11px] font-mono bg-muted rounded-md px-3 py-2 truncate text-muted-foreground">
+            {overlayUrl ?? "Loading…"}
+          </code>
+          <Button size="sm" variant="outline" onClick={copy} disabled={!overlayUrl} className="shrink-0 gap-1.5">
+            {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? "Copied" : "Copy"}
+          </Button>
+          {overlayUrl && (
+            <a href="/overlay" target="_blank" rel="noopener noreferrer">
+              <Button size="sm" variant="ghost" className="shrink-0">
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Button>
+            </a>
+          )}
+        </div>
+        <p className="text-[11px] text-muted-foreground/60">
+          Recommended size: 400 × 120 px. Background is transparent — works directly over your stream.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function SettingsPage() {
   const [status, setStatus] = useState<ObsStatus | null>(null);
   const [scenes, setScenes] = useState<ObsScene[]>([]);
@@ -676,6 +731,8 @@ export default function SettingsPage() {
       </div>
 
       <ConnectionSection status={status} onRefresh={refreshStatus} />
+
+      <OverlaySection />
 
       <div>
         <h2 className="text-base font-medium mb-4">Per-path Configuration</h2>

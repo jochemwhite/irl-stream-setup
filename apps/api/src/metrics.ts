@@ -46,7 +46,11 @@ async function poll() {
       state: "publish"
     });
 
-    if (!srtConns.length) continue;
+    if (!srtConns.length) {
+      // Path is ready (kept alive by RTMP re-publisher) but no SRT ingest — treat as offline for OBS triggers
+      await handlePathMetrics(path, 0, 0, 0, false).catch(() => {});
+      continue;
+    }
 
     const conn = srtConns[0];
 
