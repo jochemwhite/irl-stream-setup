@@ -39,9 +39,9 @@ export function getSceneSwitchLog(): SceneSwitchEntry[] {
 }
 
 export interface PathMetricState {
-  bitrate: { bad: number; threshold: number };
-  rtt:     { bad: number; threshold: number };
-  loss:    { bad: number; threshold: number };
+  bitrate: { bad: number; good: number; fallbackThreshold: number; recoverThreshold: number };
+  rtt:     { bad: number; good: number; fallbackThreshold: number; recoverThreshold: number };
+  loss:    { bad: number; good: number; fallbackThreshold: number; recoverThreshold: number };
   inFallback: boolean;
 }
 
@@ -51,9 +51,9 @@ export function getPathMetricState(path: string): PathMetricState | null {
   if (!state || !cached) return null;
   const c = cached.config;
   return {
-    bitrate:    { bad: state.consecutiveBadBitrate, threshold: c.bitrate_trigger_polls },
-    rtt:        { bad: state.consecutiveBadRtt,     threshold: c.rtt_trigger_polls },
-    loss:       { bad: state.consecutiveBadLoss,    threshold: c.loss_trigger_polls },
+    bitrate: { bad: state.consecutiveBadBitrate, good: state.consecutiveGoodBitrate, fallbackThreshold: c.bitrate_trigger_polls, recoverThreshold: c.bitrate_recover_polls },
+    rtt:     { bad: state.consecutiveBadRtt,     good: state.consecutiveGoodRtt,     fallbackThreshold: c.rtt_trigger_polls,     recoverThreshold: c.rtt_recover_polls },
+    loss:    { bad: state.consecutiveBadLoss,    good: state.consecutiveGoodLoss,    fallbackThreshold: c.loss_trigger_polls,    recoverThreshold: c.loss_recover_polls },
     inFallback: state.inFallback,
   };
 }

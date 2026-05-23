@@ -14,7 +14,9 @@ export interface RtmpReader {
 
 export interface ObsMetricCounter {
   bad: number;
-  threshold: number;
+  good: number;
+  fallbackThreshold: number;
+  recoverThreshold: number;
 }
 
 export interface ObsCounters {

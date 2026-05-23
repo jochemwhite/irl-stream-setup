@@ -88,31 +88,58 @@ function useOverlayWs(): OverlayState {
   return state;
 }
 
-// ── Metric warning bar ────────────────────────────────────────────────────────
+// ── Metric row ────────────────────────────────────────────────────────────────
 
-function MetricBar({ label, bad, threshold }: { label: string; bad: number; threshold: number }) {
-  if (bad === 0) return null;
-  const pct = Math.min((bad / threshold) * 100, 100);
-  const isClose = pct >= 60;
+function MetricRow({
+  label,
+  bad,
+  good,
+  fallbackThreshold,
+  recoverThreshold,
+  inFallback,
+}: {
+  label: string;
+  bad: number;
+  good: number;
+  fallbackThreshold: number;
+  recoverThreshold: number;
+  inFallback: boolean;
+}) {
+  const active = inFallback ? good > 0 : bad > 0;
+  if (!active) return null;
+
+  if (inFallback) {
+    // Recovery mode — show good poll progress
+    const pct = Math.min((good / recoverThreshold) * 100, 100);
+    const color = pct >= 80 ? "bg-emerald-400" : pct >= 40 ? "bg-emerald-500/70" : "bg-emerald-600/50";
+    return (
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-mono text-white/50 w-16 shrink-0">{label}</span>
+        <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+          <div className={`h-full rounded-full transition-all duration-300 ${color}`} style={{ width: `${pct}%` }} />
+        </div>
+        <span className="text-xs font-mono tabular-nums text-emerald-400 shrink-0 w-12 text-right">
+          {good}/{recoverThreshold} good
+        </span>
+      </div>
+    );
+  }
+
+  // Fallback mode — show bad poll progress
+  const pct = Math.min((bad / fallbackThreshold) * 100, 100);
   const isCritical = pct >= 90;
+  const isClose = pct >= 60;
+  const barColor = isCritical ? "bg-red-400" : isClose ? "bg-amber-400" : "bg-yellow-400/70";
+  const textColor = isCritical ? "text-red-400" : isClose ? "text-amber-400" : "text-yellow-400/80";
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-[11px] font-mono text-white/50 w-14 shrink-0">{label}</span>
-      <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-        <div
-          className={[
-            "h-full rounded-full transition-all duration-300",
-            isCritical ? "bg-red-400" : isClose ? "bg-amber-400" : "bg-yellow-400/70",
-          ].join(" ")}
-          style={{ width: `${pct}%` }}
-        />
+    <div className="flex items-center gap-3">
+      <span className="text-sm font-mono text-white/50 w-16 shrink-0">{label}</span>
+      <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+        <div className={`h-full rounded-full transition-all duration-300 ${barColor}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className={[
-        "text-[10px] font-mono tabular-nums shrink-0",
-        isCritical ? "text-red-400" : isClose ? "text-amber-400" : "text-yellow-400/80",
-      ].join(" ")}>
-        {bad}/{threshold}
+      <span className={`text-xs font-mono tabular-nums shrink-0 w-12 text-right ${textColor}`}>
+        {bad}/{fallbackThreshold} bad
       </span>
     </div>
   );
@@ -128,7 +155,13 @@ export default function OverlayPage() {
     counters !== null &&
     (counters.bitrate.bad > 0 || counters.rtt.bad > 0 || counters.loss.bad > 0);
 
-  // Determine status colour for the dot / card border
+  const hasRecovery =
+    inFallback &&
+    counters !== null &&
+    (counters.bitrate.good > 0 || counters.rtt.good > 0 || counters.loss.good > 0);
+
+  const showBars = hasWarning || hasRecovery;
+
   const statusColor = !obsConnected || !isLive
     ? "bg-white/20"
     : inFallback
@@ -143,69 +176,86 @@ export default function OverlayPage() {
     ? "border-yellow-500/30"
     : "border-white/10";
 
-  // Pulsing dot when warning / fallback
   const dotPulse = inFallback || hasWarning;
 
   if (!wsConnected) {
     return (
-      <div className="fixed top-32  inset-x-0 flex justify-center">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-black/60 backdrop-blur-sm border border-white/8">
-          <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
-          <span className="text-[11px] text-white/30 font-mono">connecting…</span>
+      <div className="fixed top-4 inset-x-0 flex justify-center">
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-black/60 backdrop-blur-sm border border-white/8">
+          <span className="h-2 w-2 rounded-full bg-white/20" />
+          <span className="text-sm text-white/30 font-mono">connecting…</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed top-32 inset-x-0 flex justify-center select-none">
+    <div className="fixed top-4 inset-x-0 flex justify-center select-none">
       <div
         className={[
-          "rounded-2xl px-4 py-3 backdrop-blur-sm border transition-all duration-500",
-          "bg-black/70",
+          "rounded-2xl px-5 py-4 backdrop-blur-sm border transition-all duration-500 bg-black/75",
           cardBorder,
         ].join(" ")}
-        style={{ minWidth: 200, maxWidth: 320 }}
+        style={{ minWidth: 280, maxWidth: 420 }}
       >
         {/* Scene name row */}
-        <div className="flex items-center justify-center gap-2.5">
-          <span className="relative flex h-2 w-2 shrink-0">
+        <div className="flex items-center justify-center gap-3">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
             {dotPulse && (
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${statusColor}`} />
             )}
-            <span className={`relative inline-flex rounded-full h-2 w-2 ${statusColor}`} />
+            <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${statusColor}`} />
           </span>
 
-          <span className="text-sm font-semibold text-white/90 leading-tight text-center">
+          <span className="text-base font-semibold text-white/90 leading-tight text-center">
             {scene ?? (obsConnected ? "Unknown scene" : "OBS offline")}
           </span>
 
           {inFallback && (
-            <span className="shrink-0 text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-md bg-orange-500/25 text-orange-300 border border-orange-500/30">
+            <span className="shrink-0 text-[10px] font-bold tracking-widest px-2 py-0.5 rounded-md bg-orange-500/25 text-orange-300 border border-orange-500/30">
               FALLBACK
             </span>
           )}
         </div>
 
-        {/* Warning bars — only shown when degrading */}
-        {hasWarning && counters && (
-          <div className="mt-2.5 flex flex-col gap-1">
-            <MetricBar label="bitrate" bad={counters.bitrate.bad} threshold={counters.bitrate.threshold} />
-            <MetricBar label="rtt" bad={counters.rtt.bad} threshold={counters.rtt.threshold} />
-            <MetricBar label="loss" bad={counters.loss.bad} threshold={counters.loss.threshold} />
+        {/* Poll bars */}
+        {showBars && counters && (
+          <div className="mt-3 flex flex-col gap-2">
+            <MetricRow
+              label="bitrate"
+              bad={counters.bitrate.bad}
+              good={counters.bitrate.good}
+              fallbackThreshold={counters.bitrate.fallbackThreshold}
+              recoverThreshold={counters.bitrate.recoverThreshold}
+              inFallback={inFallback}
+            />
+            <MetricRow
+              label="rtt"
+              bad={counters.rtt.bad}
+              good={counters.rtt.good}
+              fallbackThreshold={counters.rtt.fallbackThreshold}
+              recoverThreshold={counters.rtt.recoverThreshold}
+              inFallback={inFallback}
+            />
+            <MetricRow
+              label="loss"
+              bad={counters.loss.bad}
+              good={counters.loss.good}
+              fallbackThreshold={counters.loss.fallbackThreshold}
+              recoverThreshold={counters.loss.recoverThreshold}
+              inFallback={inFallback}
+            />
           </div>
         )}
 
-        {/* Fallback detail row */}
-        {inFallback && (
-          <p className="mt-1.5 text-[10px] text-orange-300/60 leading-tight text-center">
-            Auto-switched — waiting for recovery
+        {/* Fallback / offline notices */}
+        {inFallback && !hasRecovery && (
+          <p className="mt-2 text-xs text-orange-300/60 leading-tight text-center">
+            Waiting for recovery
           </p>
         )}
-
-        {/* Offline notice */}
         {!isLive && obsConnected && (
-          <p className="mt-1 text-[10px] text-white/25">No stream</p>
+          <p className="mt-2 text-xs text-white/25 text-center">No stream</p>
         )}
       </div>
     </div>

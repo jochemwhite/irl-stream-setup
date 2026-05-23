@@ -7,7 +7,7 @@ interface MetricCardProps {
   unit?: string;
   icon?: ReactNode;
   status?: "good" | "warn" | "bad" | "neutral";
-  counter?: { bad: number; threshold: number };
+  counter?: { bad: number; good: number; fallbackThreshold: number; recoverThreshold: number };
 }
 
 const statusColors = {
@@ -18,7 +18,7 @@ const statusColors = {
 };
 
 export function MetricCard({ label, value, unit, icon, status = "neutral", counter }: MetricCardProps) {
-  const pct = counter && counter.threshold > 0 ? counter.bad / counter.threshold : 0;
+  const pct = counter && counter.fallbackThreshold > 0 ? counter.bad / counter.fallbackThreshold : 0;
   const counterColor = pct >= 1 ? "text-red-400" : pct >= 0.5 ? "text-amber-400" : "text-amber-300";
   const barColor = pct >= 1 ? "bg-red-500" : pct >= 0.5 ? "bg-amber-500" : "bg-amber-400";
 
@@ -43,7 +43,7 @@ export function MetricCard({ label, value, unit, icon, status = "neutral", count
           <div className="mt-2 space-y-1">
             <div className="flex items-center justify-between">
               <span className={`text-[10px] font-medium tabular-nums ${counterColor}`}>
-                {counter.bad}/{counter.threshold} bad polls
+                {counter.bad}/{counter.fallbackThreshold} bad polls
               </span>
             </div>
             <div className="h-1 rounded-full bg-border/40 overflow-hidden">
