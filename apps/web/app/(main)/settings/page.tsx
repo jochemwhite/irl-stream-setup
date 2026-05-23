@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Wifi, WifiOff, RefreshCw, Play, Eye, EyeOff, Timer, X, Plus, Trash2, Copy, Check, ExternalLink,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 
 interface ObsStatus {
   connected: boolean;
@@ -629,21 +628,30 @@ function SourceControlSection({ scenes, streamPath }: { scenes: ObsScene[]; stre
 function OverlaySection() {
   const [overlayUrl, setOverlayUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const token = session?.access_token;
-      const base = `${window.location.origin}/overlay`;
-      setOverlayUrl(token ? `${base}?token=${token}` : base);
-    });
-  }, []);
+  async function loadToken() {
+    const { token } = await apiFetch("/api/overlay-token");
+    setOverlayUrl(`${window.location.origin}/overlay?token=${token}`);
+  }
+
+  useEffect(() => { loadToken(); }, []);
 
   async function copy() {
     if (!overlayUrl) return;
     await navigator.clipboard.writeText(overlayUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function regenerate() {
+    setRegenerating(true);
+    try {
+      const { token } = await apiFetch("/api/overlay-token/regenerate", { method: "POST" });
+      setOverlayUrl(`${window.location.origin}/overlay?token=${token}`);
+    } finally {
+      setRegenerating(false);
+    }
   }
 
   return (
@@ -654,7 +662,7 @@ function OverlaySection() {
       <CardContent className="space-y-3">
         <p className="text-xs text-muted-foreground">
           Add this URL as a browser source in OBS or IRL Pro. It shows the active scene and warns when metrics are degrading before an auto-switch.
-          The token in the URL is tied to your current session — regenerate it here if it expires.
+          This URL contains a permanent token that never expires.
         </p>
         <div className="flex items-center gap-2">
           <code className="flex-1 text-[11px] font-mono bg-muted rounded-md px-3 py-2 truncate text-muted-foreground">
@@ -663,6 +671,9 @@ function OverlaySection() {
           <Button size="sm" variant="outline" onClick={copy} disabled={!overlayUrl} className="shrink-0 gap-1.5">
             {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
             {copied ? "Copied" : "Copy"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={regenerate} disabled={regenerating} className="shrink-0 gap-1.5" title="Regenerate token">
+            <RefreshCw className={`h-3.5 w-3.5 ${regenerating ? "animate-spin" : ""}`} />
           </Button>
           {overlayUrl && (
             <a href="/overlay" target="_blank" rel="noopener noreferrer">

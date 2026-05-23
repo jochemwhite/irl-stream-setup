@@ -45,9 +45,6 @@ Bun.serve({
     }
 
     if (path === "/ws") {
-      if (!(await isAuthenticated(req))) {
-        return new Response("Unauthorized", { status: 401 });
-      }
       if (server.upgrade(req)) return undefined;
       return new Response("WebSocket upgrade failed", { status: 400 });
     }
@@ -252,6 +249,20 @@ Bun.serve({
       const streamPath = decodeURIComponent(match[1]);
       await clearOverride(streamPath);
       return json({ ok: true });
+    }
+
+    if (path === "/api/overlay-token" && method === "GET") {
+      const { data } = await supabase.from("obs_connection").select("overlay_token").eq("id", 1).single();
+      if (data?.overlay_token) return json({ token: data.overlay_token });
+      const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+      await supabase.from("obs_connection").upsert({ id: 1, overlay_token: token });
+      return json({ token });
+    }
+
+    if (path === "/api/overlay-token/regenerate" && method === "POST") {
+      const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+      await supabase.from("obs_connection").upsert({ id: 1, overlay_token: token });
+      return json({ token });
     }
 
     return new Response("API online", { status: 200 });
