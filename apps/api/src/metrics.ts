@@ -9,26 +9,61 @@ import { calcHealth } from "./health";
 const METRICS_URL = process.env.MEDIAMTX_METRICS!;
 const POLL_INTERVAL = Number(process.env.POLL_INTERVAL || 1000);
 
+// Suppress repeated identical fetch errors — only log when the message changes
+let lastFetchError: string | null = null;
+let consecutiveFetchErrors = 0;
+let lastPathSummary: string | null = null;
+
 export async function startCollector() {
-  console.log("collector started");
+  console.log(`collector started — url=${METRICS_URL} interval=${POLL_INTERVAL}ms`);
 
   setInterval(async () => {
     try {
       await poll();
     } catch (err) {
-      console.error(err);
+      const msg = err instanceof Error ? `${err.message}` : String(err);
+      consecutiveFetchErrors++;
+      if (msg !== lastFetchError) {
+        console.error(`[metrics] fetch failed (${consecutiveFetchErrors}x): ${msg}`);
+        lastFetchError = msg;
+      } else if (consecutiveFetchErrors % 30 === 0) {
+        // Re-log every 30 polls (~30s at default interval) so it stays visible
+        console.error(`[metrics] still failing after ${consecutiveFetchErrors} polls: ${msg}`);
+      }
     }
   }, POLL_INTERVAL);
 }
 
 async function poll() {
-  const res = await fetch(METRICS_URL);
+  let res: Response;
+  try {
+    res = await fetch(METRICS_URL);
+  } catch (err) {
+    const cause = err instanceof Error ? err.message : String(err);
+    throw new Error(`cannot reach ${METRICS_URL} — ${cause}`);
+  }
+
+  if (!res.ok) {
+    throw new Error(`${METRICS_URL} responded ${res.status} ${res.statusText}`);
+  }
+
+  // Reset error state on a successful fetch
+  if (consecutiveFetchErrors > 0) {
+    console.log(`[metrics] recovered after ${consecutiveFetchErrors} failed polls`);
+    consecutiveFetchErrors = 0;
+    lastFetchError = null;
+  }
 
   const text = await res.text();
 
   const map = parseMetrics(text);
 
   const paths = getAllMetrics(map, "paths");
+  const pathSummary = paths.map(p => `${p.labels.name}(${p.labels.state})`).join(", ") || "none";
+  if (pathSummary !== lastPathSummary) {
+    console.log(`[metrics] paths changed — ${pathSummary}`);
+    lastPathSummary = pathSummary;
+  }
 
   for (const pathMetric of paths) {
     const path = pathMetric.labels.name;
