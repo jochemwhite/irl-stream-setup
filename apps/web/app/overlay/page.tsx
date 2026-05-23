@@ -190,7 +190,7 @@ export default function OverlayPage() {
   }
 
   return (
-    <div className="fixed top-4 inset-x-0 flex justify-center select-none">
+    <div className="fixed top-32 inset-x-0 flex justify-center select-none">
       <div
         className={[
           "rounded-2xl px-5 py-4 backdrop-blur-sm border transition-all duration-500 bg-black/75",
